@@ -1,0 +1,46 @@
+head(wbcd)
+
+set.seed(1234)
+sel <- sample(1:nrow(wbcd), floor(nrow(wbcd)*0.8))
+
+train <- wbcd[sel,] # 훈련자료 80%
+test <- wbcd[-sel,] # 검증자료 20%
+
+library(e1071) # 나이브베이즈
+m_nb <-naiveBayes(diagnosis~., data=train)
+test_pred<- predict(m_nb, test)
+predict(m_nb, test, type="raw") %>% round(.,3)
+confusionMatrix(test$diagnosis,test_pred)
+
+library(nnet) # 다항로지스틱
+m_logis <- multinom(diagnosis~., data=train)
+test_pred2<- predict(m_logis, test)
+confusionMatrix(test$diagnosis,test_pred2)
+
+library(rpart) #entropy 기반 의사결정나무
+m_rpart <- rpart(diagnosis~., data=train)
+library(rpart.plot)
+rpart.plot(m_rpart)
+test_pred3<- predict(m_rpart, test, type="class")
+confusionMatrix(test$diagnosis,test_pred3)
+
+library(partykit) #조건부추론 기반 의사결정나무
+m_ctree <- ctree(diagnosis~., data=train)
+m_ctree %>% plot
+test_pred4<- predict(m_ctree, test)
+confusionMatrix(test$diagnosis,test_pred4)
+
+library(randomForest) # 다항로지스틱
+m_rf3 <- randomForest(diagnosis~., data=train, 
+                     ntree=1500, mtry=3)
+m_rf4 <- randomForest(diagnosis~., data=train, 
+                      ntree=1500, mtry=4)
+m_rf5 <- randomForest(diagnosis~., data=train, 
+                      ntree=1500, mtry=5)
+m_rf6 <-randomForest(diagnosis~., data=train, 
+                      ntree=1500, mtry=6)
+
+table(test$diagnosis, predict(m_rf3, test))
+table(test$diagnosis, predict(m_rf4, test))
+table(test$diagnosis, predict(m_rf5, test))
+table(test$diagnosis, predict(m_rf6, test))
