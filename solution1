@@ -1,0 +1,43 @@
+data(wine,package="rattle")
+head(wine)
+
+# kmeans clusterin 수행해보기
+df=scale(wine[-1])
+nc=NbClust(df,min.nc=2,max.nc=15,method="kmeans")
+table(nc$Best.n[1,])
+
+clust1 <- kmeans(df, 3)
+clust1$cluster
+
+# mclust 수행해보기
+clust2=Mclust(wine[,-1])
+clust2$classification
+
+table(wine$Type, clust1$cluster)
+table(wine$Type, clust2$classification)
+
+
+library(e1071)
+library(randomForest)
+sel <- sample(1:nrow(wine), floor(nrow(wine)*0.8))
+
+train <- wine[sel,]
+test <- wine[-sel,]
+
+wine$y <- clust2$classification
+model <- randomForest(factor(y)~.-Type, train)
+output1 <- predict(model, test)
+
+table(test$y, output1)
+
+
+
+
+
+
+
+
+
+
+
+
